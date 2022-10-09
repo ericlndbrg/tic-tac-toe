@@ -11,6 +11,7 @@ grid = {
 selection = nil
 char = 'X'
 we_have_a_winner = false
+VALID_USER_INPUT = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'q'].freeze
 
 def draw_grid(grid)
 	puts '    1   2   3'
@@ -24,6 +25,7 @@ def draw_grid(grid)
 end
 
 def get_user_selection
+	yield if block_given?
 	puts "Enter 'q' to quit"
 	print 'Enter a selection: '
 	gets.chomp
@@ -38,16 +40,22 @@ until selection == 'q'
 	selection = get_user_selection
 
 	# check that selection is either a cell address on the grid or 'q'
-	# if so, continue
 	# if not, reprompt the player for their selection
+	unless VALID_USER_INPUT.include?(selection)
+		selection = get_user_selection { puts 'invalid input, please try again' }
+	end
 
 	# quit if the player enters 'q' as their selection
 	abort('Quitting...') if selection == 'q'
 
 	# check if the selected cell is available
-	# if so, update the grid with player's selection
-	grid[selection] = char
 	# if not, reprompt the player for their selection
+	unless grid[selection] == ' '
+		selection = get_user_selection { puts 'that cell is already taken, please try again' }
+	end
+
+	# update the grid with player's selection
+	grid[selection] = char
 
 	# apply rules
 
