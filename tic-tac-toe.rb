@@ -8,9 +8,7 @@ grid = {
   'b1' => ' ', 'b2' => ' ', 'b3' => ' ',
   'c1' => ' ', 'c2' => ' ', 'c3' => ' '
 }
-selection = nil
-char = 'X'
-we_have_a_winner = false
+# turn_counter = 0
 VALID_USER_INPUT = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'q'].freeze
 
 def draw_grid(grid)
@@ -31,11 +29,26 @@ def get_user_selection
 	gets.chomp
 end
 
-# display the initialized grid
-draw_grid(grid)
+# def apply_rules(selection, grid, turn_counter)
+# 	# the direction checks can be bailed out of if an X is next to an O
+# 	# no need to look across an entire row if it's impossible to have 3
+# 	# of the same symbol all the way across
+# 	# ex. |X|O|X|
+# 	return if turn_counter < 5
+# 	# break the selection into a row and column
+# 	row, column = selection.split(/\B/)
+# 	# all cells need row and column rules applied
+# 	# the corner cells require a diagonal rule (to opposite corner) applied as well
+# 	# the middle cell requires two diagonal rules (to both opposite corners) applied as well
+# 	# apply row rule
+# 	# apply column rule
+# 	# if selection is a corner cell
+# 	#   apply diagonal rule (to opposite corner)
+# 	# if selection is a middle cell
+# 	#   apply two diagonal rules (to both opposite corners)
+# end
 
-# play the game
-until selection == 'q'
+def play(char, grid)
 	# prompt player for selection
 	selection = get_user_selection
 
@@ -57,15 +70,27 @@ until selection == 'q'
 	# update the grid with player's selection
 	grid[selection] = char
 
+	# increment the turn_counter
+	# turn_counter += 1
+
 	# apply rules
+	# apply_rules(selection, grid, turn_counter)
 
 	# display updated grid
 	draw_grid(grid)
 
+	we_have_a_winner = false
 	if we_have_a_winner
 		abort("#{char}'s won!")
 	else
 		# switch chars and play another turn
-		char = char == 'X' ? 'O' : 'X'
+		new_char = char == 'X' ? 'O' : 'X'
+		play(new_char, grid)
 	end
 end
+
+# display the initialized grid
+draw_grid(grid)
+
+# play the game
+play('X', grid)
