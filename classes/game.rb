@@ -114,7 +114,7 @@ class Game
 	  row = selection.chars[0]
 	  # get a list of all the cells in that row
 	  row_cells = ["#{row}1", "#{row}2", "#{row}3"]
-	  # remove selection from the list of cells, why?
+	  # remove selection from the list of cells
 	  cells_to_analyze = row_cells.delete_if { |cell| cell == selection }
 	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
@@ -126,19 +126,30 @@ class Game
 	end
 
 	def column_rule(selection)
+		# find out which column we're dealing with
 	  column = selection.chars[1]
+	  # get a list of all the cells in that column
 	  column_cells = ["a#{column}", "b#{column}", "c#{column}"]
+	  # remove selection from the list of cells
 	  cells_to_analyze = column_cells.delete_if { |cell| cell == selection }
+	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
+	  	# bail out as soon as it's clear that self.char isn't present contiguously
 	    return unless self.grid[cell] == self.grid[selection]
 	  end
+	  # if we get here, self.char's won
 	  self.we_have_a_winner = true
 	end
 
 	def diagonal_rule(selection)
 		if selection == 'b2'
 			# the middle cell requires two corner checks
-			['a1', 'c1'].each { |cell| opposite_corner_rule(cell) }
+			# check a1 --> c3
+			opposite_corner_rule('a1')
+			# bail out if the first corner check passes
+			return if self.we_have_a_winner == true
+			# check c1 --> a3
+			opposite_corner_rule('c1')
 		else
 			# the corner cells require one corner check
 			opposite_corner_rule(selection)
@@ -146,13 +157,17 @@ class Game
 	end
 
 	def opposite_corner_rule(selection)
+		# resolve the opposite corner cell
 		opposite_corner_row = selection.chars[0] == 'a' ? 'c' : 'a'
 		opposite_corner_column = selection.chars[1] == '1' ? '3' : '1'
 		opposite_corner_cell = opposite_corner_row + opposite_corner_column
 		cells_to_analyze = ['b2', opposite_corner_cell]
+		# for each cell we must look at
 		cells_to_analyze.each do |cell|
+			# bail out as soon as it's clear that self.char isn't present contiguously
 	    return unless self.grid[cell] == self.grid[selection]
 	  end
+	  # if we get here, self.char's won
 	  self.we_have_a_winner = true
 	end
 end
