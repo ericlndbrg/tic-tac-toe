@@ -1,5 +1,6 @@
 require_relative 'grid'
 require_relative 'input_validator'
+require_relative 'player'
 
 class Game
 	CORNER_CELLS = ['a1', 'a3', 'c1', 'c3'].freeze
@@ -9,15 +10,17 @@ class Game
 		self.grid = Grid.new
 		self.input_validator = InputValidator.new
 		self.turn_counter = 0
-		self.char = 'X'
+		self.x_player = Player.new('X')
+		self.o_player = Player.new('O')
+		self.current_player = self.x_player
 		self.we_have_a_winner = false
 		self.grid.draw
 	end
 
 	def play
 		begin
-			# prompt player for selection
-			selection = get_user_selection
+			# prompt player for their cell selection
+			selection = get_player_cell_selection
 			# validate user input
 			self.input_validator.validate_user_input(selection, self.grid.cell_hash[selection])
 		rescue => e
@@ -30,7 +33,7 @@ class Game
 		abort('Quitting...') if selection == 'q'
 
 		# update the grid with player's selection
-		self.grid.update(selection, self.char)
+		self.grid.update(selection, self.current_player.char)
 
 		# increment the turn_counter
 		self.turn_counter += 1
@@ -42,13 +45,13 @@ class Game
 		self.grid.draw
 
 		# end the game if somebody won
-		abort("#{self.char}'s win!") if self.we_have_a_winner
+		abort("#{self.current_player.char}'s win!") if self.we_have_a_winner
 
 		# end the game if the board is full and nobody has won
 		abort('stalemate!') if self.we_have_a_winner == false && self.turn_counter == 9
 
-		# switch chars
-		self.char = self.char == 'X' ? 'O' : 'X'
+		# switch players
+		self.current_player = self.current_player == self.x_player ? self.o_player : self.x_player
 
 		# play another turn
 		play
@@ -56,14 +59,16 @@ class Game
 
 	private
 
-	attr_accessor :grid, :turn_counter, :char, :we_have_a_winner, :input_validator
+	attr_accessor :grid,
+		:turn_counter,
+		:we_have_a_winner,
+		:input_validator,
+		:current_player,
+		:x_player,
+		:o_player
 
-	def get_user_selection
-		puts "Enter 'q' to quit"
-		print 'Enter a selection: '
-		gets.chomp
-
-		x_player.submit_selection
+	def get_player_cell_selection
+		self.current_player.get_cell_selection
 	end
 
 	def apply_rules(selection)
@@ -93,10 +98,10 @@ class Game
 	  cells_to_analyze = row_cells.delete_if { |cell| cell == selection }
 	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
-	  	# bail out as soon as it's clear that self.char isn't present contiguously
+	  	# bail out as soon as it's clear that self.current_player.char isn't present contiguously
 	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
-	  # if we get here, self.char's won
+	  # if we get here, self.current_player.char's won
 	  self.we_have_a_winner = true
 	end
 
@@ -109,10 +114,10 @@ class Game
 	  cells_to_analyze = column_cells.delete_if { |cell| cell == selection }
 	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
-	  	# bail out as soon as it's clear that self.char isn't present contiguously
+	  	# bail out as soon as it's clear that self.current_player.char isn't present contiguously
 	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
-	  # if we get here, self.char's won
+	  # if we get here, self.current_player.char's won
 	  self.we_have_a_winner = true
 	end
 
@@ -139,10 +144,10 @@ class Game
 		cells_to_analyze = ['b2', opposite_corner_cell]
 		# for each cell we must look at
 		cells_to_analyze.each do |cell|
-			# bail out as soon as it's clear that self.char isn't present contiguously
+			# bail out as soon as it's clear that self.current_player.char isn't present contiguously
 	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
-	  # if we get here, self.char's won
+	  # if we get here, self.current_player.char's won
 	  self.we_have_a_winner = true
 	end
 end
