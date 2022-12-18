@@ -1,18 +1,16 @@
+require_relative 'grid'
+
 class Game
 	VALID_USER_INPUT = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'q'].freeze
 	CORNER_CELLS = ['a1', 'a3', 'c1', 'c3'].freeze
   MIDDLE_CELL = 'b2'.freeze
 
 	def initialize
-		self.grid = {
-		  'a1' => ' ', 'a2' => ' ', 'a3' => ' ',
-		  'b1' => ' ', 'b2' => ' ', 'b3' => ' ',
-		  'c1' => ' ', 'c2' => ' ', 'c3' => ' '
-		}
+		self.grid = Grid.new
 		self.turn_counter = 0
 		self.char = 'X'
 		self.we_have_a_winner = false
-		draw_grid
+		self.grid.draw
 	end
 
 	def play
@@ -31,7 +29,7 @@ class Game
 		abort('Quitting...') if selection == 'q'
 
 		# update the grid with player's selection
-		self.grid[selection] = self.char
+		self.grid.update(selection, self.char)
 
 		# increment the turn_counter
 		self.turn_counter += 1
@@ -40,7 +38,7 @@ class Game
 		apply_rules(selection)
 
 		# display updated grid
-		draw_grid
+		self.grid.draw
 
 		# end the game if somebody won
 		abort("#{self.char}'s win!") if self.we_have_a_winner
@@ -59,17 +57,6 @@ class Game
 
 	attr_accessor :grid, :turn_counter, :char, :we_have_a_winner
 
-	def draw_grid
-		puts '    1   2   3'
-		puts '  -------------'
-		puts "A | #{self.grid['a1']} | #{self.grid['a2']} | #{self.grid['a3']} |"
-		puts '  -------------'
-		puts "B | #{self.grid['b1']} | #{self.grid['b2']} | #{self.grid['b3']} |"
-		puts '  -------------'
-		puts "C | #{self.grid['c1']} | #{self.grid['c2']} | #{self.grid['c3']} |"
-		puts '  -------------'
-	end
-
 	def get_user_selection
 		puts "Enter 'q' to quit"
 		print 'Enter a selection: '
@@ -86,7 +73,7 @@ class Game
 		return if selection == 'q'
 
 		# check if the selected cell is available
-		unless self.grid[selection] == ' '
+		unless self.grid.cell_hash[selection] == ' '
 			raise(StandardError, 'that cell is already taken, please try again')
 		end
 	end
@@ -119,7 +106,7 @@ class Game
 	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
 	  	# bail out as soon as it's clear that self.char isn't present contiguously
-	    return unless self.grid[cell] == self.grid[selection]
+	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
 	  # if we get here, self.char's won
 	  self.we_have_a_winner = true
@@ -135,7 +122,7 @@ class Game
 	  # for each cell we must look at
 	  cells_to_analyze.each do |cell|
 	  	# bail out as soon as it's clear that self.char isn't present contiguously
-	    return unless self.grid[cell] == self.grid[selection]
+	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
 	  # if we get here, self.char's won
 	  self.we_have_a_winner = true
@@ -165,7 +152,7 @@ class Game
 		# for each cell we must look at
 		cells_to_analyze.each do |cell|
 			# bail out as soon as it's clear that self.char isn't present contiguously
-	    return unless self.grid[cell] == self.grid[selection]
+	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
 	  end
 	  # if we get here, self.char's won
 	  self.we_have_a_winner = true
