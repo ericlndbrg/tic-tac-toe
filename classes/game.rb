@@ -1,12 +1,13 @@
 require_relative 'grid'
+require_relative 'input_validator'
 
 class Game
-	VALID_USER_INPUT = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'q'].freeze
 	CORNER_CELLS = ['a1', 'a3', 'c1', 'c3'].freeze
   MIDDLE_CELL = 'b2'.freeze
 
 	def initialize
 		self.grid = Grid.new
+		self.input_validator = InputValidator.new
 		self.turn_counter = 0
 		self.char = 'X'
 		self.we_have_a_winner = false
@@ -18,7 +19,7 @@ class Game
 			# prompt player for selection
 			selection = get_user_selection
 			# validate user input
-			validate_user_input(selection)
+			self.input_validator.validate_user_input(selection, self.grid.cell_hash[selection])
 		rescue => e
 			puts e.message
 			# re-prompt the user for input if validation failed
@@ -55,27 +56,14 @@ class Game
 
 	private
 
-	attr_accessor :grid, :turn_counter, :char, :we_have_a_winner
+	attr_accessor :grid, :turn_counter, :char, :we_have_a_winner, :input_validator
 
 	def get_user_selection
 		puts "Enter 'q' to quit"
 		print 'Enter a selection: '
 		gets.chomp
-	end
 
-	def validate_user_input(selection)
-		# check if the input is allowed
-		unless VALID_USER_INPUT.include?(selection)
-			raise(StandardError, 'invalid input, please try again')
-		end
-
-		# break out if selection == 'q'
-		return if selection == 'q'
-
-		# check if the selected cell is available
-		unless self.grid.cell_hash[selection] == ' '
-			raise(StandardError, 'that cell is already taken, please try again')
-		end
+		x_player.submit_selection
 	end
 
 	def apply_rules(selection)
