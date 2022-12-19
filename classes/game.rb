@@ -1,11 +1,9 @@
 require_relative 'grid'
 require_relative 'input_validator'
 require_relative 'player'
+require_relative 'referee'
 
 class Game
-	CORNER_CELLS = ['a1', 'a3', 'c1', 'c3'].freeze
-  MIDDLE_CELL = 'b2'.freeze
-
 	def initialize
 		self.grid = Grid.new
 		self.input_validator = InputValidator.new
@@ -13,6 +11,7 @@ class Game
 		self.x_player = Player.new('X')
 		self.o_player = Player.new('O')
 		self.current_player = self.x_player
+		self.referee = Referee.new
 		self.we_have_a_winner = false
 		self.grid.draw
 	end
@@ -39,7 +38,7 @@ class Game
 		self.turn_counter += 1
 
 		# apply the rules of the game
-		apply_rules(selection)
+		self.we_have_a_winner = self.referee.apply_rules(selection, self.grid, self.turn_counter)
 
 		# display updated grid
 		self.grid.draw
@@ -65,89 +64,10 @@ class Game
 		:input_validator,
 		:current_player,
 		:x_player,
-		:o_player
+		:o_player,
+		:referee
 
 	def get_player_cell_selection
 		self.current_player.get_cell_selection
-	end
-
-	def apply_rules(selection)
-		# the minimum number of turns to win is 5, no need to apply
-		# the rules if we haven't had the chance to have a winner
-		return if self.turn_counter < 5
-
-		# discern which rules need to be applied based on selection
-    # all cells need row and column rules applied
-    rules_to_apply = [:row_rule, :column_rule]
-    # the diagonal rule only applies to the corner cells and the middle cell
-    rules_to_apply << :diagonal_rule if CORNER_CELLS.include?(selection) || selection == MIDDLE_CELL
-
-    # apply the relevant rules
-	  rules_to_apply.each do |rule|
-	  	send(rule, selection)
-	  	break if self.we_have_a_winner
-	  end
-	end
-
-	def row_rule(selection)
-		# find out which row we're dealing with
-	  row = selection.chars[0]
-	  # get a list of all the cells in that row
-	  row_cells = ["#{row}1", "#{row}2", "#{row}3"]
-	  # remove selection from the list of cells
-	  cells_to_analyze = row_cells.delete_if { |cell| cell == selection }
-	  # for each cell we must look at
-	  cells_to_analyze.each do |cell|
-	  	# bail out as soon as it's clear that self.current_player.char isn't present contiguously
-	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
-	  end
-	  # if we get here, self.current_player.char's won
-	  self.we_have_a_winner = true
-	end
-
-	def column_rule(selection)
-		# find out which column we're dealing with
-	  column = selection.chars[1]
-	  # get a list of all the cells in that column
-	  column_cells = ["a#{column}", "b#{column}", "c#{column}"]
-	  # remove selection from the list of cells
-	  cells_to_analyze = column_cells.delete_if { |cell| cell == selection }
-	  # for each cell we must look at
-	  cells_to_analyze.each do |cell|
-	  	# bail out as soon as it's clear that self.current_player.char isn't present contiguously
-	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
-	  end
-	  # if we get here, self.current_player.char's won
-	  self.we_have_a_winner = true
-	end
-
-	def diagonal_rule(selection)
-		if selection == 'b2'
-			# the middle cell requires two corner checks
-			# check a1 --> c3
-			opposite_corner_rule('a1')
-			# bail out if the first corner check passes
-			return if self.we_have_a_winner == true
-			# check c1 --> a3
-			opposite_corner_rule('c1')
-		else
-			# the corner cells require one corner check
-			opposite_corner_rule(selection)
-		end
-	end
-
-	def opposite_corner_rule(selection)
-		# resolve the opposite corner cell
-		opposite_corner_row = selection.chars[0] == 'a' ? 'c' : 'a'
-		opposite_corner_column = selection.chars[1] == '1' ? '3' : '1'
-		opposite_corner_cell = opposite_corner_row + opposite_corner_column
-		cells_to_analyze = ['b2', opposite_corner_cell]
-		# for each cell we must look at
-		cells_to_analyze.each do |cell|
-			# bail out as soon as it's clear that self.current_player.char isn't present contiguously
-	    return unless self.grid.cell_hash[cell] == self.grid.cell_hash[selection]
-	  end
-	  # if we get here, self.current_player.char's won
-	  self.we_have_a_winner = true
 	end
 end
