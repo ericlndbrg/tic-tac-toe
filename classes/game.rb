@@ -2,6 +2,7 @@ require_relative 'grid'
 require_relative 'input_validator'
 require_relative 'player'
 require_relative 'referee'
+require_relative 'printer'
 
 class Game
 	def initialize
@@ -23,13 +24,13 @@ class Game
 			# validate user input
 			self.input_validator.validate_user_input(selection, self.grid.cell_hash[selection])
 		rescue => e
-			puts e.message
+			Printer.print_output(e.message)
 			# re-prompt the user for input if validation failed
 			retry
 		end
 
 		# quit if the player enters 'q' as their selection
-		abort('Quitting...') if selection == 'q'
+		end_game('Thanks for playing!') if selection == 'q'
 
 		# update the grid with player's selection
 		self.grid.update(selection, self.current_player.char)
@@ -44,10 +45,10 @@ class Game
 		self.grid.draw
 
 		# end the game if somebody won
-		abort("#{self.current_player.char}'s win!") if self.we_have_a_winner
+		end_game("#{self.current_player.char}'s win!") if self.we_have_a_winner
 
 		# end the game if the board is full and nobody has won
-		abort('stalemate!') if self.we_have_a_winner == false && self.turn_counter == 9
+		end_game('Stalemate!') if self.we_have_a_winner == false && self.turn_counter == 9
 
 		# switch players
 		self.current_player = self.current_player == self.x_player ? self.o_player : self.x_player
@@ -69,5 +70,10 @@ class Game
 
 	def get_player_cell_selection
 		self.current_player.get_cell_selection
+	end
+
+	def end_game(msg)
+		Printer.print_output(msg)
+		abort
 	end
 end

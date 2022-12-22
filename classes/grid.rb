@@ -10,14 +10,18 @@ class Grid
 	end
 
 	def draw
-		puts '    1   2   3'
-		puts '  +-----------+'
-		puts "A | #{self.cell_hash['a1']} | #{self.cell_hash['a2']} | #{self.cell_hash['a3']} |"
-		puts '  -------------'
-		puts "B | #{self.cell_hash['b1']} | #{self.cell_hash['b2']} | #{self.cell_hash['b3']} |"
-		puts '  -------------'
-		puts "C | #{self.cell_hash['c1']} | #{self.cell_hash['c2']} | #{self.cell_hash['c3']} |"
-		puts '  +-----------+'
+		[
+			'    1   2   3',
+			'  +-----------+',
+			"A | #{self.cell_hash['a1']} | #{self.cell_hash['a2']} | #{self.cell_hash['a3']} |",
+			'  -------------',
+			"B | #{self.cell_hash['b1']} | #{self.cell_hash['b2']} | #{self.cell_hash['b3']} |",
+			'  -------------',
+			"C | #{self.cell_hash['c1']} | #{self.cell_hash['c2']} | #{self.cell_hash['c3']} |",
+			'  +-----------+'
+		].each do |grid_row|
+			Printer.print_output(grid_row)
+		end
 	end
 
 	def update(selection, char)

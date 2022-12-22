@@ -6,8 +6,8 @@ class Player
 	end
 
 	def get_cell_selection
-		puts "Enter 'q' to quit"
-		print 'Enter a selection: '
+		Printer.print_output("Enter 'q' to quit")
+		Printer.print_output('Enter a selection: ', add_newline_char: false)
 		gets.chomp
 	end
 
