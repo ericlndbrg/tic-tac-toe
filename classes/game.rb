@@ -13,8 +13,8 @@ class Game
     self.input_validator = InputValidator.new
     self.x_player = Player.new('X')
     self.o_player = Player.new('O')
-    self.current_player = x_player
     self.referee = Referee.new
+    self.current_player = x_player
     self.we_have_a_winner = false
     self.turn_counter = 0
     grid.draw
@@ -42,7 +42,7 @@ class Game
     self.turn_counter += 1
 
     # apply the rules of the game
-    self.we_have_a_winner = referee.apply_rules(selection, grid, turn_counter)
+    self.we_have_a_winner = referee.winner_found?(selection, grid, turn_counter)
 
     # display updated grid
     grid.draw
