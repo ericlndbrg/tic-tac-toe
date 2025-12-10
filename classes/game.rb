@@ -1,78 +1,107 @@
 # frozen_string_literal: true
 
-require_relative 'grid'
-require_relative 'input_validator'
-require_relative 'player'
-require_relative 'referee'
-require_relative 'printer'
-
-# this class orchestrates the game
 class Game
+  ROW_LETTERS = ['A', 'B', 'C'].freeze
+  COLUMN_NUMBERS = ['1', '2', '3'].freeze
+  TOP_BOTTOM_BORDER = '  +-------+'
+  DEFAULT_CELL_VALUE = '-'
+  PLAYERS = 'XO'
+
+  attr_accessor :turn_counter
+  attr_reader :player, :winner
+
   def initialize
-    self.grid = Grid.new
-    self.input_validator = InputValidator.new
-    self.x_player = Player.new('X')
-    self.o_player = Player.new('O')
-    self.referee = Referee.new
-    self.current_player = x_player
-    self.we_have_a_winner = false
+    self.grid = []
+    3.times { self.grid.push(Array.new(3, DEFAULT_CELL_VALUE)) }
+    self.player = PLAYERS[0]
     self.turn_counter = 0
-    grid.draw
+    self.winner = nil
   end
 
-  def play
-    begin
-      # prompt player for their cell selection
-      selection = current_player.get_cell_selection
-      # validate user input
-      input_validator.validate_user_input(selection, grid.cell_hash[selection])
-    rescue StandardError => e
-      Printer.print_output(e.message)
-      # re-prompt the user for input if validation failed
-      retry
+  def draw_grid
+    puts "    #{COLUMN_NUMBERS.join(' ')}"
+    puts TOP_BOTTOM_BORDER
+
+    grid.each_with_index do |row, index|
+      print "#{ROW_LETTERS[index]} | "
+      row.each { |cell| print "#{cell} " }
+      puts '|'
     end
 
-    # quit if the player enters 'q' as their selection
-    end_game('Thanks for playing!') if selection == 'q'
+    puts TOP_BOTTOM_BORDER
+  end
 
-    # update the grid with player's selection
-    grid.update(selection, current_player.char)
+  def update_cell(cell)
+    self.coordinates = cell_to_coords(cell)
 
-    # increment the turn_counter
-    self.turn_counter += 1
+    # the cell state must be '-' prior to the transition
+    unless grid[coordinates[0]][coordinates[1]] == DEFAULT_CELL_VALUE
+      raise 'that cell has already been taken'
+    end
 
-    # apply the rules of the game
-    self.we_have_a_winner = referee.winner_found?(selection, grid, turn_counter)
+    self.grid[coordinates[0]][coordinates[1]] = player
+  end
 
-    # display updated grid
-    grid.draw
+  def apply_rules(cell)
+    return if turn_counter < 5
 
-    # end the game if somebody won
-    end_game("#{current_player.char}'s win!") if we_have_a_winner
+    rules_to_apply = [:row?, :col?]
 
-    # end the game if the board is full and nobody has won
-    end_game('Stalemate!') if we_have_a_winner == false && turn_counter == 9
+    case cell
+    when 'B2'
+      rules_to_apply.push(:diag_nw_se?, :diag_sw_ne?)
+    when 'A1', 'C3'
+      rules_to_apply.push(:diag_nw_se?)
+    when 'C1', 'A3'
+      rules_to_apply.push(:diag_sw_ne?)
+    end
 
-    # switch players
-    self.current_player = current_player == x_player ? o_player : x_player
+    rules_to_apply.each do |rule|
+      if send(rule)
+        self.winner = player
+        break
+      end
+    end
 
-    # play another turn
-    play
+    # nobody won if we get here
+    # either play another turn or it's a stalemate
+    self.winner = 'nobody' if turn_counter == 9
+  end
+
+  def switch_players
+    self.player = player == PLAYERS[0] ? PLAYERS[1] : PLAYERS[0]
   end
 
   private
 
-  attr_accessor :grid,
-                :turn_counter,
-                :we_have_a_winner,
-                :input_validator,
-                :current_player,
-                :x_player,
-                :o_player,
-                :referee
+  attr_accessor :grid, :coordinates
+  attr_writer :player, :winner
 
-  def end_game(msg)
-    Printer.print_output(msg)
-    abort
+  def cell_to_coords(cell)
+    # cell must be only 2 characters
+    raise 'invalid cell selection' if cell.length != 2
+    # the 2 characters must represent a cell on the grid
+    raise 'invalid row selection' unless ROW_LETTERS.include?(cell[0])
+    raise 'invalid column selection' unless COLUMN_NUMBERS.include?(cell[1])
+
+    [ROW_LETTERS.index(cell[0]), COLUMN_NUMBERS.index(cell[1])]
+  end
+
+  def row?
+    grid[coordinates[0]].all?(player)
+  end
+
+  def col?
+    [grid[0][coordinates[1]], grid[1][coordinates[1]], grid[2][coordinates[1]]].all?(player)
+  end
+
+  def diag_nw_se?
+    # A1, B2, C3
+    [grid[0][0], grid[1][1], grid[2][2]].all?(player)
+  end
+
+  def diag_sw_ne?
+    # C1, B2, A3
+    [grid[2][0], grid[1][1], grid[0][2]].all?(player)
   end
 end
