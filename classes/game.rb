@@ -63,8 +63,8 @@ class Game
       end
     end
 
-    # nobody won if we get here
-    # either play another turn or it's a stalemate
+    return if winner
+
     self.winner = 'nobody' if turn_counter == 9
   end
 
