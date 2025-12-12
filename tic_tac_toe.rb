@@ -19,14 +19,15 @@ def play
       retry
     end
     game.turn_counter += 1
-    game.apply_rules(player_selection)
     game.draw_grid
-    break if game.winner
+    if game.turn_counter > 4
+      game.apply_rules(player_selection)
+      break if game.result
+    end
     game.switch_players
   end
 
-  result = game.winner == 'nobody' ? 'Stalemate!' : "#{game.winner}'s won!"
-  puts result
+  puts game.result
 end
 
 play

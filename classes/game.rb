@@ -8,14 +8,14 @@ class Game
   PLAYERS = 'XO'
 
   attr_accessor :turn_counter
-  attr_reader :player, :winner
+  attr_reader :player, :result
 
   def initialize
     self.grid = []
     3.times { self.grid.push(Array.new(3, DEFAULT_CELL_VALUE)) }
     self.player = PLAYERS[0]
     self.turn_counter = 0
-    self.winner = nil
+    self.result = nil
   end
 
   def draw_grid
@@ -43,8 +43,6 @@ class Game
   end
 
   def apply_rules(cell)
-    return if turn_counter < 5
-
     rules_to_apply = [:row?, :col?]
 
     case cell
@@ -58,14 +56,14 @@ class Game
 
     rules_to_apply.each do |rule|
       if send(rule)
-        self.winner = player
+        self.result = "#{player}'s won!"
         break
       end
     end
 
-    return if winner
+    return if result
 
-    self.winner = 'nobody' if turn_counter == 9
+    self.result = 'Stalemate!' if turn_counter == 9
   end
 
   def switch_players
@@ -75,7 +73,7 @@ class Game
   private
 
   attr_accessor :grid, :coordinates
-  attr_writer :player, :winner
+  attr_writer :player, :result
 
   def cell_to_coords(cell)
     # cell must be only 2 characters
