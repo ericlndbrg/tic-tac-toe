@@ -1,8 +1,6 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require_relative 'classes/game'
-# require 'byebug'
 
 def play
   game = Game.new
